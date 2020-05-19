@@ -1,0 +1,40 @@
+load_file("netparmpi.hoc")
+
+objref pnm, pc, tvec, idvec
+
+proc pcell() {localobj s
+  s = new String()
+  sprint(s.s, "t%g", t)
+  pc.prcellstate($1, s.s)
+}
+
+proc spike2file() { localobj outf, s
+    if (use_coreneuron) {
+        return
+    }
+    s = new String()
+    sprint(s.s, "out%s.dat", $s1)
+    outf = new File()
+    if (pc.id == 0) {outf.wopen(s.s) outf.close }
+    for pnm.serialize() {
+        outf.aopen(s.s)
+        for i=0, idvec.size-1 {
+            outf.printf("%.8g\t%d\n", tvec.x[i], idvec.x[i])
+        }
+        outf.close
+    }
+}
+
+proc prun() {
+    if (use_coreneuron) {
+        strdef arg
+        sprint(arg, "--tstop %lf %s", tstop, $s1)
+        pc.nrncore_run(arg)
+    } else {
+        tsav = startsw()
+        pc.psolve(tstop)
+        if (pc.id == 0) {
+            printf("psolve time %g\n", startsw() - tsav)
+        }
+    }
+}

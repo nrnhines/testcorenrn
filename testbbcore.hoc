@@ -1,10 +1,22 @@
 {load_file("nrngui.hoc")}
+{load_file("defvar.hoc")}
+load_file("common.hoc")
 
 ncell = 10
-objref pc, cell, cells, nc, netcons, st, stims, nil
-pc = new ParallelContext()
+objref cell, cells, nc, netcons, st, stims, nil
+pnm = new ParallelNetManager(0)
+pc = pnm.pc
+tvec = new Vector()
+idvec = new Vector()
 
 cells = new List()
+netcons = new List()
+
+create dummy_cell
+pc.set_gid2node(ncell, pc.id)
+nc = new NetCon(&dummy_cell.v(.5), nil)
+netcons.append(nc)
+pc.cell(ncell, nc)
 
 for (gid = pc.id; gid < ncell; gid += pc.nhost) {
   pc.set_gid2node(gid, pc.id)
@@ -14,41 +26,23 @@ for (gid = pc.id; gid < ncell; gid += pc.nhost) {
   cell.noise = 1
   cell.number=1e9
   cell.noiseFromRandom123(gid, 2, 3)
-  pc.cell(gid, new NetCon(cell, nil))
+  nc = new NetCon(cell, nil)
+  netcons.append(nc)
+  pc.cell(gid, nc)
   cells.append(cell)
 }
 
-objref tvec, idvec
-tvec = new Vector()
-idvec = new Vector()
 pc.spike_record(-1, tvec, idvec)
 
 cvode.cache_efficient(1)
 pc.set_maxstep(10)
 stdinit()
 
-proc pcell() {localobj s
-  s = new String()
-  sprint(s.s, "t%g", t)
-  pc.prcellstate($1, s.s)
+if(!use_coreneuron){
+   pc.nrnbbcore_write("testbbcoredat")
 }
-
-pc.nrnbbcore_write("testbbcoredat")
-//pcell(0)
-tsav = startsw()
-pc.psolve(100)
-if (pc.id == 0) { printf("psolve time %g\n", startsw() - tsav) }
-
-strdef s
-sprint(s, "out%d.dat", pc.id)
-objref f
-f = new File()
-f.wopen(s)
-for i=0, tvec.size-1 {
-  f.printf("%.8g %d\n", tvec.x[i], idvec.x[i])
-}
-f.close()
+prun("")
+spike2file("bbcore")
 
 pc.barrier()
 quit()
-

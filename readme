@@ -1,38 +1,33 @@
 #!/bin/sh
 
-#prepare nrniv results
-# use a version of NEURON that has an hh.mod that is compatible with coreneuron
-# eg. nrnenv nrncore
+## Make sure to have installed NEURON compatible with CoreNEURON
+## Compile CoreNEURON with GPU support
+## Make sure $PATH is correctly set and modules are loaded
 
-nrnivmodl
+nrnivmodl mod
+nrnivmodl-core mod
 
-names="deriv gf kin conc watch"
+names="deriv gf kin conc watch vecplay"
 
 for i in $names ; do
-  mkdir -p test${i}dat
+  x86_64/special -c sim_time=100 test${i}.hoc
+  cat out${i}.dat | sort -k 1n,1n -k 2n,2n > out_nrn_${i}.spk
+  rm out${i}.dat
 done
 
 for i in $names ; do
-  nrniv test${i}.hoc
-  cat out[0-9].dat | sort -k 1n,1n -k 2n,2n > out_nrn_${i}.spk
-  rm out[0-9].dat
-done
-
-#prepare coreneuron executable
-
-mkdir -p modcore
-cp *.mod modcore
-
-pgenv #How I set up my environment in preparation for...
-
-corenrnbuild -m modcore -b buildgpu -s $HOME/bb/coreneuron -i $HOME/bb/install
-
-for i in $names ; do
-  buildgpu/bin/coreneuron_exec -d test${i}dat --cell_permute=1 -e 10 --gpu
-  cat out[0-9].dat | sort -k 1n,1n -k 2n,2n > out_gpu_${i}.spk
-  rm out[0-9].dat
+  x86_64/special -c sim_time=100 -c coreneuron=1 test${i}.hoc
+  cat out.dat | sort -k 1n,1n -k 2n,2n > out_core_online_${i}.spk
+  rm out.dat
 done
 
 for i in $names ; do
-  diff -w -q out_nrn_${i}.spk out_gpu_${i}.spk
+  x86_64/special-core -d test${i}dat --cell-permute 1 -e 100
+  cat out.dat | sort -k 1n,1n -k 2n,2n > out_core_file_${i}.spk
+  rm out.dat
+done
+
+for i in $names ; do
+  diff -w -q out_nrn_${i}.spk out_core_online_${i}.spk
+  diff -w -q out_nrn_${i}.spk out_core_file_${i}.spk
 done
