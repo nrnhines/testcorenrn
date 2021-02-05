@@ -1,5 +1,5 @@
 {load_file("nrngui.hoc")}
-
+{load_file("defvar.hoc")}
 
 ncell = 10
 objref pc, cell, cells, nil, vec, vecs, r, netcons, nc
@@ -51,7 +51,9 @@ cvode.cache_efficient(1)
 pc.set_maxstep(10)
 stdinit()
 
-pc.nrncore_run("-e 100")
+use_coreneuron = 1
+prun("")
+use_coreneuron = 0
 
 objref vvecsav, ivecsav
 vvecsav = cells.o(0).vvec.c()
@@ -61,7 +63,7 @@ cells.o(0).ivec.resize(0)
 
 stdinit()
 tsav = startsw()
-pc.psolve(100)
+pc.psolve(tstop)
 if (pc.id == 0) { printf("psolve time %g\n", startsw() - tsav) }
 printf("vvec cmp = %d ivec cmp = %d\n", vvecsav.eq(cells.o(0).vvec), ivecsav.eq(cells.o(0).ivec))
 if (0) for i=0, 100{

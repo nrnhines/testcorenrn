@@ -9,9 +9,6 @@ proc pcell() {localobj s
 }
 
 proc spike2file() { localobj outf, s
-    if (use_coreneuron) {
-        return
-    }
     s = new String()
     sprint(s.s, "out%s.dat", $s1)
     outf = new File()
@@ -25,16 +22,31 @@ proc spike2file() { localobj outf, s
     }
 }
 
-proc prun() {
-    if (use_coreneuron) {
-        strdef arg
-        sprint(arg, "--tstop %lf %s", tstop, $s1)
-        pc.nrncore_run(arg)
-    } else {
-        tsav = startsw()
-        pc.psolve(tstop)
-        if (pc.id == 0) {
-            printf("psolve time %g\n", startsw() - tsav)
+proc prun() { localobj po
+    if (use_coreneuron || gpu) {
+        if (!nrnpython("from neuron import coreneuron")) {
+            printf("Python not available\n")
+            return
         }
+        po = new PythonObject()
+        po.coreneuron.enable = 1
+        if(filemode) {
+            po.coreneuron.filemode = 1
+        }
+        if(gpu) {
+            po.coreneuron.gpu = 1
+        }
+        if(pc.id == 0) {
+            printf("nrncore_arg: |%s|\n", po.coreneuron.nrncore_arg(tstop))
+        }
+    } else {
+        if(dumpmodel) {
+            pc.nrnbbcore_write("coredat")
+        }
+        tsav = startsw()
+    }
+    pc.psolve(tstop)
+    if (!use_coreneuron && pc.id == 0) {
+        printf("psolve time %g\n", startsw() - tsav)
     }
 }

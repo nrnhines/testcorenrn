@@ -19,8 +19,11 @@ proc default_var() {localobj s, pc
 	}
 }
 
-default_var("coreneuron", 0)
 default_var("sim_time", 10)
+default_var("coreneuron", 0)
+default_var("gpu", 0)
+default_var("filemode", 0)
+default_var("dumpmodel", 0)
 
 use_coreneuron = coreneuron
 tstop = sim_time
