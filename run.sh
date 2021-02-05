@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+set -e
 
 rm -rf *dat x86_64 *.spk
 
@@ -7,6 +8,8 @@ export OMP_NUM_THREADS=1
 spike_comparisson_tests="bbcore conc deriv gf kin patstim vecplay watch vecevent"
 
 direct_tests="netstimdirect"
+
+# gpu_tests="bbcore kin"
 
 declare -A mpi_ranks
 mpi_ranks["bbcore"]=1
@@ -20,17 +23,31 @@ mpi_ranks["watch"]=2
 mpi_ranks["vecevent"]=4
 mpi_ranks["netstimdirect"]=2
 
+EXTRA_ARGS=""
+GPU_ARG="-c gpu=1"
+
 ~/bbp_repos/nrn/build/install/bin/nrnivmodl -coreneuron mod
 
 for test in $spike_comparisson_tests; do
   echo "Running neuron for $test"
   num_ranks=${mpi_ranks[$test]}
-  mpirun -n $num_ranks ./x86_64/special -mpi -c sim_time=100 test${test}.hoc
+  if [[ "$test" == "patstim" ]]; then
+    EXTRA_ARGS="-c dumpmodel=1"
+  fi
+  mpirun -n $num_ranks ./x86_64/special -mpi -c sim_time=100 $EXTRA_ARGS test${test}.hoc
   cat out${test}.dat | sort -k 1n,1n -k 2n,2n > out_nrn_${test}.spk
   rm out${test}.dat
 
   echo "Running coreneuron for $test"
-  mpirun -n $num_ranks ./x86_64/special -mpi -c sim_time=100 -c coreneuron=1 test${test}.hoc
+  if [[ "$gpu_tests" == *"$test"* ]]; then
+    EXTRA_ARGS="$EXTRA_ARGS $GPU_ARG"
+  fi
+  if [[ "$test" == "patstim" ]] ; then
+    mpirun -n $num_ranks ./x86_64/special-core -d coredat --mpi -e 100 --pattern patstim.spk
+    mv out.dat out${test}.dat
+  else
+    mpirun -n $num_ranks ./x86_64/special -mpi -c sim_time=100 -c coreneuron=1 $EXTRA_ARGS test${test}.hoc
+  fi
   cat out${test}.dat | sort -k 1n,1n -k 2n,2n > out_cn_${test}.spk
   rm out${test}.dat
 done

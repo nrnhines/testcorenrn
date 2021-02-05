@@ -36,9 +36,6 @@ proc prun() { localobj po
         if(gpu) {
             po.coreneuron.gpu = 1
         }
-        if(strcmp(pattern, "") != 0) {
-            po.coreneuron.pattern = pattern
-        }
         if(pc.id == 0) {
             printf("nrncore_arg: |%s|\n", po.coreneuron.nrncore_arg(tstop))
         }
