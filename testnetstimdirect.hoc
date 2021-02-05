@@ -1,9 +1,11 @@
 {load_file("nrngui.hoc")}
 {load_file("defvar.hoc")}
+load_file("common.hoc")
 
 ncell = 10
-objref pc, cell, cells, nil, vec, vecs, r, netcons, nc
-pc = new ParallelContext()
+objref cell, cells, nil, vec, vecs, r, netcons, nc
+pnm = new ParallelNetManager(0)
+pc = pnm.pc
 
 cells = new List()
 netcons = new List()
@@ -62,23 +64,17 @@ cells.o(0).vvec.resize(0)
 cells.o(0).ivec.resize(0)
 
 stdinit()
-tsav = startsw()
-pc.psolve(tstop)
-if (pc.id == 0) { printf("psolve time %g\n", startsw() - tsav) }
-printf("vvec cmp = %d ivec cmp = %d\n", vvecsav.eq(cells.o(0).vvec), ivecsav.eq(cells.o(0).ivec))
-if (0) for i=0, 100{
-  printf("%d %g %g\n", i, vvecsav.x[i], cells.o(0).vvec.x[i])
+prun("")
+
+if(vvecsav.eq(cells.o(0).vvec) && ivecsav.eq(cells.o(0).ivec)) {
+  if(pc.id == 0) {
+    printf("Test netstimdirect passed. Voltage and current vectors are same.\n")
+  }
+} else {
+  execerror("Voltage or current vectors are different")
 }
 
-strdef s
-sprint(s, "out%d.dat", pc.id)
-objref f
-f = new File()
-f.wopen(s)
-for i=0, tvec.size-1 {
-  f.printf("%g %d\n", tvec.x[i], idvec.x[i])
-}
-f.close()
+spike2file("netstimdirect")
 
 pc.barrier()
 quit()
