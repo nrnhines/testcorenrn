@@ -24,6 +24,7 @@ default_var("coreneuron", 0)
 default_var("gpu", 0)
 default_var("filemode", 0)
 default_var("dumpmodel", 0)
+default_var("pattern", "")
 
 use_coreneuron = coreneuron
 tstop = sim_time
