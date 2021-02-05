@@ -1,11 +1,9 @@
 #!/usr/bin/bash
 set -e
 
-rm -rf *dat x86_64 *.spk
-
 export OMP_NUM_THREADS=1
 
-spike_comparisson_tests="bbcore conc deriv gf kin patstim vecplay watch vecevent"
+spike_comparison_tests="bbcore conc deriv gf kin patstim vecplay watch vecevent"
 
 direct_tests="netstimdirect"
 
@@ -26,9 +24,7 @@ mpi_ranks["netstimdirect"]=2
 EXTRA_ARGS=""
 GPU_ARG="-c gpu=1"
 
-~/bbp_repos/nrn/build/install/bin/nrnivmodl -coreneuron mod
-
-for test in $spike_comparisson_tests; do
+for test in $spike_comparison_tests; do
   echo "Running neuron for $test"
   num_ranks=${mpi_ranks[$test]}
   if [[ "$test" == "patstim" ]]; then
@@ -52,7 +48,7 @@ for test in $spike_comparisson_tests; do
   rm out${test}.dat
 done
 
-for test in $spike_comparisson_tests; do
+for test in $spike_comparison_tests; do
   DIFF=$(diff -w -q out_nrn_${test}.spk out_cn_${test}.spk)
   if [ "$DIFF" != "" ]
   then

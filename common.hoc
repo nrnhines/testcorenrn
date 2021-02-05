@@ -23,6 +23,9 @@ proc spike2file() { localobj outf, s
 }
 
 proc prun() { localobj po
+    if(dumpmodel) {
+        pc.nrnbbcore_write("coredat")
+    }
     if (use_coreneuron || gpu) {
         if (!nrnpython("from neuron import coreneuron")) {
             printf("Python not available\n")
@@ -40,9 +43,6 @@ proc prun() { localobj po
             printf("nrncore_arg: |%s|\n", po.coreneuron.nrncore_arg(tstop))
         }
     } else {
-        if(dumpmodel) {
-            pc.nrnbbcore_write("coredat")
-        }
         tsav = startsw()
     }
     pc.psolve(tstop)
