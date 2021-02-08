@@ -60,4 +60,5 @@ for test in $direct_tests; do
   echo "Running neuron and coreneuron for $test"
   num_ranks=${mpi_ranks[$test]}
   mpirun -n $num_ranks ./x86_64/special -mpi -c sim_time=100 test${test}.hoc
+  cat out${test}.dat | sort -k 1n,1n -k 2n,2n > out_nrn_${test}.spk
 done
