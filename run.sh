@@ -29,7 +29,7 @@ for test in $spike_comparison_tests; do
   echo "Running neuron for $test"
   num_ranks=${mpi_ranks[$test]}
   if [[ "$test" == "patstim" ]]; then
-    EXTRA_ARGS="-c use_coreneuron_filemode=1"
+    EXTRA_ARGS="-c arg_dump_coreneuron_model=1"
   fi
   mpirun -n $num_ranks ./x86_64/special -mpi -c arg_tstop=100 $EXTRA_ARGS test${test}.hoc
   cat out${test}.dat | sort -k 1n,1n -k 2n,2n > out_nrn_${test}.spk
