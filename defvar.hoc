@@ -19,12 +19,15 @@ proc default_var() {localobj s, pc
 	}
 }
 
-default_var("sim_time", 10)
-default_var("coreneuron", 0)
-default_var("gpu", 0)
-default_var("filemode", 0)
-default_var("dumpmodel", 0)
-default_var("pattern", "")
+default_var("arg_tstop", 10)
+default_var("arg_coreneuron", 0)
+default_var("arg_coreneuron_filemode", 0)
+default_var("arg_dump_coreneuron_model", 0)
+default_var("arg_coreneuron_gpu", 0)
+default_var("arg_pattern", "")
 
-use_coreneuron = coreneuron
-tstop = sim_time
+use_coreneuron = arg_coreneuron
+use_coreneuron_filemode = arg_coreneuron_filemode
+dump_coreneuron_model = arg_dump_coreneuron_model
+use_coreneuron_gpu = arg_coreneuron_gpu
+tstop = arg_tstop

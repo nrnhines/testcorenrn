@@ -22,16 +22,13 @@ mpi_ranks["vecevent"]=4
 mpi_ranks["netstimdirect"]=2
 
 EXTRA_ARGS=""
-GPU_ARG="-c gpu=1"
+GPU_ARG="-c arg_coreneuron_gpu=1"
 
 # Run tests that require separate runs of NEURON and CoreNEURON to compare their spikes only
 for test in $spike_comparison_tests; do
   echo "Running neuron for $test"
   num_ranks=${mpi_ranks[$test]}
-  if [[ "$test" == "patstim" ]]; then
-    EXTRA_ARGS="-c dumpmodel=1"
-  fi
-  mpirun -n $num_ranks ./x86_64/special -mpi -c sim_time=100 $EXTRA_ARGS test${test}.hoc
+  mpirun -n $num_ranks ./x86_64/special -mpi -c arg_tstop=100 $EXTRA_ARGS test${test}.hoc
   cat out${test}.dat | sort -k 1n,1n -k 2n,2n > out_nrn_${test}.spk
   rm out${test}.dat
 
@@ -40,10 +37,11 @@ for test in $spike_comparison_tests; do
     EXTRA_ARGS="$EXTRA_ARGS $GPU_ARG"
   fi
   if [[ "$test" == "patstim" ]] ; then
+    mpirun -n $num_ranks ./x86_64/special -mpi -c arg_tstop=100 -c arg_dump_coreneuron_model=1 test${test}.hoc
     mpirun -n $num_ranks ./x86_64/special-core -d coredat --mpi -e 100 --pattern patstim.spk
     mv out.dat out${test}.dat
   else
-    mpirun -n $num_ranks ./x86_64/special -mpi -c sim_time=100 -c coreneuron=1 $EXTRA_ARGS test${test}.hoc
+    mpirun -n $num_ranks ./x86_64/special -mpi -c arg_tstop=100 -c arg_coreneuron=1 $EXTRA_ARGS test${test}.hoc
   fi
   cat out${test}.dat | sort -k 1n,1n -k 2n,2n > out_cn_${test}.spk
   rm out${test}.dat
@@ -69,7 +67,7 @@ done
 for test in $direct_tests; do
   echo "Running neuron and coreneuron for $test"
   num_ranks=${mpi_ranks[$test]}
-  mpirun -n $num_ranks ./x86_64/special -mpi -c sim_time=100 test${test}.hoc
+  mpirun -n $num_ranks ./x86_64/special -mpi -c arg_tstop=100 test${test}.hoc
   cat out${test}.dat | sort -k 1n,1n -k 2n,2n > out_nrn_${test}.spk
 done
 

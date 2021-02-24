@@ -9,6 +9,9 @@ proc pcell() {localobj s
 }
 
 proc spike2file() { localobj outf, s
+    if(dump_coreneuron_model) {
+        return
+    }
     s = new String()
     sprint(s.s, "out%s.dat", $s1)
     outf = new File()
@@ -23,20 +26,22 @@ proc spike2file() { localobj outf, s
 }
 
 proc prun() { localobj po
-    if(dumpmodel) {
+    if(dump_coreneuron_model) {
         pc.nrnbbcore_write("coredat")
+        print "dump_coreneuron_model=1, finishing execution without simulation\n"
+        return
     }
-    if (use_coreneuron || gpu) {
+    if (use_coreneuron || use_coreneuron_gpu) {
         if (!nrnpython("from neuron import coreneuron")) {
             printf("Python not available\n")
             return
         }
         po = new PythonObject()
         po.coreneuron.enable = 1
-        if(filemode) {
+        if(use_coreneuron_filemode) {
             po.coreneuron.filemode = 1
         }
-        if(gpu) {
+        if(use_coreneuron_gpu) {
             po.coreneuron.gpu = 1
         }
         if(pc.id == 0) {
