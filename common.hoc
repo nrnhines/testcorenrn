@@ -25,7 +25,8 @@ proc spike2file() { localobj outf, s
     }
 }
 
-proc prun() { localobj po
+proc prun() { local mode  localobj po
+    mode = 0
     if(dump_coreneuron_model) {
         pc.nrnbbcore_write("coredat")
         print "dump_coreneuron_model=1, finishing execution without simulation\n"
@@ -47,10 +48,29 @@ proc prun() { localobj po
         if(pc.id == 0) {
             printf("nrncore_arg: |%s|\n", po.coreneuron.nrncore_arg(tstop))
         }
+        mode = use_coreneuron_psolve_test_mode
     } else {
         tsav = startsw()
     }
-    pc.psolve(tstop)
+    if (mode == 0) {
+        pc.psolve(tstop)
+    } else if (mode == 1) { // good for testing complete nrn->corenrn
+      po.coreneuron.enable = 0
+      pc.psolve(tstop/2) // nrn in arbitrary state
+      po.coreneuron.enable = 1
+      pc.psolve(tstop)
+    } else if (mode == 2) {
+        while (t < tstop) {
+          pc.psolve(t + 1)
+        }
+    } else {
+        while (t < tstop) {
+            po.coreneuron.enable = 0
+            pc.psolve(t + 0.5)
+            po.coreneuron.enable = 1
+            pc.psolve(t + 0.5)
+        }
+    }
     if (!use_coreneuron && pc.id == 0) {
         printf("psolve time %g\n", startsw() - tsav)
     }
