@@ -44,6 +44,7 @@ proc prun() { localobj po
         if(use_coreneuron_gpu) {
             po.coreneuron.gpu = 1
         }
+        po.coreneuron.prcellstate = use_prcellstate
         if(pc.id == 0) {
             printf("nrncore_arg: |%s|\n", po.coreneuron.nrncore_arg(tstop))
         }

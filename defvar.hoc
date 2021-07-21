@@ -24,10 +24,12 @@ default_var("arg_coreneuron", 0)
 default_var("arg_coreneuron_filemode", 0)
 default_var("arg_dump_coreneuron_model", 0)
 default_var("arg_coreneuron_gpu", 0)
+default_var("arg_prcellstate", -1)
 default_var("arg_pattern", "")
 
 use_coreneuron = arg_coreneuron
 use_coreneuron_filemode = arg_coreneuron_filemode
 dump_coreneuron_model = arg_dump_coreneuron_model
 use_coreneuron_gpu = arg_coreneuron_gpu
+use_prcellstate = arg_prcellstate
 tstop = arg_tstop
